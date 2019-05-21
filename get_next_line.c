@@ -6,7 +6,7 @@
 /*   By: mcouto <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/18 19:00:24 by mcouto            #+#    #+#             */
-/*   Updated: 2019/05/20 02:08:26 by mcouto           ###   ########.fr       */
+/*   Updated: 2019/05/20 20:18:04 by mcouto           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ int get_next_line(const int fd, char **line)
 {
 	static char *remain;
 	int i;
-	char *temp;
+	char *tmp;
 
 	i = 0;
 	if (remain == NULL)
@@ -43,19 +43,21 @@ int get_next_line(const int fd, char **line)
 		remain = ft_strnew(BUFF_SIZE);
 		read(fd, remain, BUFF_SIZE);
 	}
-	while (remain[i] != '\n')
-	{
-		if (remain[i] == '\0')
-			remain = ft_nonl(fd, remain);
-		i++;
+		tmp = remain;
+	if (read(fd,remain,BUFF_SIZE) > 0)
+		while (tmp[i] != '\n')
+		{
+			if (tmp[i] == '\0')
+				tmp = ft_nonl(fd, tmp);
+			i++;
+		}
+		*line = ft_strnew(i);
+		*line = ft_strncpy(*line, tmp, (i));
+		remain = ft_strdup(&tmp[i + 1]);
+		ft_strdel(&tmp);
+		return (1);
 	}
-	*line = ft_strnew(i);
-	*line = ft_strncpy(*line, remain, (i));
-	temp = remain;
-	remain = &remain[i + 1];
-	temp[i] = '\0';
-	ft_strdel(&temp);
-	return (1);
+	return (0);
 }
 
 int main(int ac, char **av)
