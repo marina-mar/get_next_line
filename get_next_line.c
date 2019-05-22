@@ -6,7 +6,7 @@
 /*   By: mcouto <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/18 19:00:24 by mcouto            #+#    #+#             */
-/*   Updated: 2019/05/20 20:18:04 by mcouto           ###   ########.fr       */
+/*   Updated: 2019/05/22 04:20:56 by mcouto           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,48 +16,58 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-//static ft_return(const int fd, char *buff)
-//{
-//	
-//}
-static char *ft_nonl(const int fd, char *buff)
+static void ft_organize(char **remain, char **tmp, char **line, int i)
+{
+	*line = ft_strnew(i);
+	*line = ft_strncpy(*line, *tmp, (i));
+	*remain = ft_strdup(&(*tmp)[i + 1]);
+	ft_strdel(tmp);
+}
+
+static char *ft_nonl(int *ret, char *buff, const int fd)
 {
 	char *new;
-
+	char *tmp;
+	
+	tmp = buff;
 	new = ft_strnew(BUFF_SIZE);
-	if (read(fd, new, BUFF_SIZE) > 0)
+	if ((*ret = read(fd, new, BUFF_SIZE)) > 0)
 		buff = ft_strjoin(buff, new);
 	ft_strdel(&new);
-	return (buff);
+	ft_strdel(&tmp);
+	return (buff);	
 }
 
 int get_next_line(const int fd, char **line)
 {
 	static char *remain;
 	int i;
+	int ret;
 	char *tmp;
 
+	ret = 0;
 	i = 0;
+	if (fd < 0 || !line)
+		return (-1);
 	if (remain == NULL)
-	{
 		remain = ft_strnew(BUFF_SIZE);
-		read(fd, remain, BUFF_SIZE);
-	}
-		tmp = remain;
-	if (read(fd,remain,BUFF_SIZE) > 0)
-		while (tmp[i] != '\n')
+	tmp = remain;
+	while (tmp[i] != '\n')
+	{
+		if (tmp[i] == '\0')
 		{
-			if (tmp[i] == '\0')
-				tmp = ft_nonl(fd, tmp);
-			i++;
+			tmp = ft_nonl(&ret, tmp, fd);
+//to deal with the '\n' being in the place of the old '\0':
+			i = i - 1;
 		}
-		*line = ft_strnew(i);
-		*line = ft_strncpy(*line, tmp, (i));
-		remain = ft_strdup(&tmp[i + 1]);
-		ft_strdel(&tmp);
-		return (1);
+		if (ret == -1)
+			return (-1);
+	   i++;	
 	}
-	return (0);
+	ft_organize(&remain, &tmp, line, i);
+	if (ret == 0)
+		return (0);
+	return (1);
 }
 
 int main(int ac, char **av)
