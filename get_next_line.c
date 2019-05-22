@@ -6,7 +6,7 @@
 /*   By: mcouto <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/18 19:00:24 by mcouto            #+#    #+#             */
-/*   Updated: 2019/05/22 04:20:56 by mcouto           ###   ########.fr       */
+/*   Updated: 2019/05/22 05:14:10 by mcouto           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,16 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-static void ft_organize(char **remain, char **tmp, char **line, int i)
+//static void ft_lastline()
+
+static void	ft_lastline(char **line)
+{
+	ft_strdel(line);
+}
+
+
+
+static void	ft_organize(char **remain, char **tmp, char **line, int i)
 {
 	*line = ft_strnew(i);
 	*line = ft_strncpy(*line, *tmp, (i));
@@ -24,7 +33,7 @@ static void ft_organize(char **remain, char **tmp, char **line, int i)
 	ft_strdel(tmp);
 }
 
-static char *ft_nonl(int *ret, char *buff, const int fd)
+static char	*ft_nonl(int *ret, char *buff, const int fd)
 {
 	char *new;
 	char *tmp;
@@ -38,7 +47,7 @@ static char *ft_nonl(int *ret, char *buff, const int fd)
 	return (buff);	
 }
 
-int get_next_line(const int fd, char **line)
+int	get_next_line(const int fd, char **line)
 {
 	static char *remain;
 	int i;
@@ -59,14 +68,18 @@ int get_next_line(const int fd, char **line)
 			tmp = ft_nonl(&ret, tmp, fd);
 //to deal with the '\n' being in the place of the old '\0':
 			i = i - 1;
+
+			if (ret == 0)
+			{
+				ft_lastline(line);
+				return (0);
+			}
 		}
 		if (ret == -1)
 			return (-1);
 	   i++;	
 	}
 	ft_organize(&remain, &tmp, line, i);
-	if (ret == 0)
-		return (0);
 	return (1);
 }
 
@@ -87,5 +100,6 @@ int main(int ac, char **av)
 	printf("%s", hi);
 	printf("\n%d\n", get_next_line(fd, &hi));
 	printf("%s", hi);
-
+	printf("\n%d\n", get_next_line(fd, &hi));
+	printf("%s", hi);
 }
