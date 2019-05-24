@@ -6,7 +6,7 @@
 /*   By: mcouto <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/18 19:00:24 by mcouto            #+#    #+#             */
-/*   Updated: 2019/05/23 22:24:42 by mcouto           ###   ########.fr       */
+/*   Updated: 2019/05/24 04:45:37 by mcouto           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,14 +15,26 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <string.h>
 
-static int ft_isnotempty(char *buff)
+static int ft_lastlines(char **remain, char **tmp, char **line, int ret)
 {
-	//check if theres smthng else in the string, if it has only "\0", then the read is over.
-	if (*buff != '\0')
-		return (1);
-	return (0);
+	int i;
 
+	i = ft_strlen(*tmp);
+	//check if theres smthng else in the string, if it has only "\0", then the read is over.
+	//define last line:
+	if (ret == -1)
+		return (-1);
+	if (**tmp != '\0')
+	{
+		*line = ft_strnew(i);
+		*line = ft_strncpy(*line, *tmp, (i));
+		ft_strdel(remain);
+		return (1);
+	}
+	*line = NULL;
+	return (0);
 }
 
 static void	ft_organize(char **remain, char **tmp, char **line, int i)
@@ -44,8 +56,8 @@ static char	*ft_nonl(int *ret, char *buff, const int fd)
 	
 	tmp = buff;
 	new = ft_strnew(BUFF_SIZE);
-	if ((*ret = read(fd, new, BUFF_SIZE)) > 0)
-		buff = ft_strjoin(buff, new);
+	*ret = read(fd, new, BUFF_SIZE);
+	buff = ft_strjoin(buff, new);
 	ft_strdel(&new);
 	ft_strdel(&tmp);
 	return (buff);	
@@ -61,7 +73,10 @@ int	get_next_line(const int fd, char **line)
 	ret = 0; //return from the read
 	i = 0; //index to check '\n' char
 	if (fd < 0 || !line)
+	{
+		*line = NULL;
 		return (-1);
+	}
 	if (remain == NULL) //first line mark, creates the remain string
 		remain = ft_strnew(BUFF_SIZE);
 	tmp = remain;//put it in tmp so we can avoid memory 
@@ -71,47 +86,35 @@ int	get_next_line(const int fd, char **line)
 		if (tmp[i] == '\0')
 		{
 			tmp = ft_nonl(&ret, tmp, fd);
-			if (ret == 0)
-			{
-				//define last line:
-				if (ft_isnotempty(tmp) == 1)
-				{
-					//set i to size of tmp, so it copies all the string, then break to ft_organize:
-					i = ft_strlen(tmp);
-					break;
-				}
-				ft_strdel(line);
-				return (0);
-			}			
+			if (ret != 1)
+				return(ft_lastlines(&remain, &tmp, line, ret));			
 	//to deal with the '\n' being in the place of the old '\0':
 			i = i - 1;
 		}
-		if (ret == -1)
-			return (-1);
 	   i++;	
 	}
 	ft_organize(&remain, &tmp, line, i);
 	return (1);
 }
-/*
-int main(int ac, char **av)
+
+/*int main(int ac, char **av)
 {
 	ac = 0;
 	char *hi;
 	int fd;
+	int a;
+
+	a = 7;
 
 	fd = open(av[1], O_RDONLY);
 	if (fd < 0) 
 	{
 	 //error
 	}
-	printf("[%d]\n", get_next_line(fd, &hi));
-	printf("%s", hi);
-	printf("\n[%d]\n", get_next_line(fd, &hi));
-	printf("%s", hi);
-	printf("\n[%d]\n", get_next_line(fd, &hi));
-	printf("%s", hi);
-	printf("\n[%d]\n", get_next_line(fd, &hi));
-	printf("%s", hi);
-}
-*/
+	while (a != 0)
+	{
+		a = get_next_line(fd,&hi);
+		printf("\n[%d]\n", a);
+		printf("%s", hi);
+	}
+}*/
