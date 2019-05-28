@@ -6,7 +6,7 @@
 /*   By: mcouto <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/18 19:00:24 by mcouto            #+#    #+#             */
-/*   Updated: 2019/05/24 04:45:37 by mcouto           ###   ########.fr       */
+/*   Updated: 2019/05/28 00:02:32 by mcouto           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,7 +86,7 @@ int	get_next_line(const int fd, char **line)
 		if (tmp[i] == '\0')
 		{
 			tmp = ft_nonl(&ret, tmp, fd);
-			if (ret != 1)
+			if (ret < 1)
 				return(ft_lastlines(&remain, &tmp, line, ret));			
 	//to deal with the '\n' being in the place of the old '\0':
 			i = i - 1;
@@ -103,9 +103,7 @@ int	get_next_line(const int fd, char **line)
 	char *hi;
 	int fd;
 	int a;
-
 	a = 7;
-
 	fd = open(av[1], O_RDONLY);
 	if (fd < 0) 
 	{
