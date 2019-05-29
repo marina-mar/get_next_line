@@ -6,7 +6,7 @@
 /*   By: mcouto <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/18 19:00:24 by mcouto            #+#    #+#             */
-/*   Updated: 2019/05/28 15:37:23 by mcouto           ###   ########.fr       */
+/*   Updated: 2019/05/28 17:15:22 by mcouto           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,18 +19,19 @@
 
 static int ft_lastlines(char **remain, char **tmp, char **line, int ret)
 {
-	int i;
+	int size;
 
-	i = ft_strlen(*tmp);
+	size = ft_strlen(*tmp);
 	//check if theres smthng else in the string, if it has only "\0", then the read is over.
 	//define last line:
 	if (ret == -1)
 		return (-1);
 	if (**tmp != '\0')
 	{
-		*line = ft_strnew(i);
-		*line = ft_strncpy(*line, *tmp, (i));
-		ft_strdel(remain);
+		*line = ft_strnew(size);
+		*line = ft_strncpy(*line, *tmp, (size));
+		if (remain)
+			ft_strdel(remain);
 		return (1);
 	}
 	*line = NULL;
@@ -55,9 +56,11 @@ static char	*ft_nonl(int *ret, char *buff, const int fd)
 	char *tmp;
 	
 	tmp = buff;
-	new = ft_strnew(BUFF_SIZE);
+	if(!(new = ft_strnew(BUFF_SIZE)))
+		return (NULL);
 	*ret = read(fd, new, BUFF_SIZE);
-	buff = ft_strjoin(buff, new);
+	if(!(buff = ft_strjoin(buff, new)))
+		return (NULL);
 	ft_strdel(&new);
 	ft_strdel(&tmp);
 	return (buff);	
@@ -73,10 +76,7 @@ int	get_next_line(const int fd, char **line)
 	ret = 0; //return from the read
 	i = 0; //index to check '\n' char
 	if (fd < 0 || !line)
-	{
-		*line = NULL;
 		return (-1);
-	}
 	if (remain == NULL) //first line mark, creates the remain string
 		remain = ft_strnew(BUFF_SIZE);
 	tmp = remain;//put it in tmp so we can avoid memory 
@@ -97,7 +97,7 @@ int	get_next_line(const int fd, char **line)
 	return (1);
 }
 
-/*int main(int ac, char **av)
+int main(int ac, char **av)
 {
 	ac = 0;
 	char *hi;
@@ -115,4 +115,4 @@ int	get_next_line(const int fd, char **line)
 		printf("\n[%d]\n", a);
 		printf("%s", hi);
 	}
-}*/
+}
