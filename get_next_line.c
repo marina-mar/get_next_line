@@ -6,7 +6,7 @@
 /*   By: mcouto <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/18 19:00:24 by mcouto            #+#    #+#             */
-/*   Updated: 2019/05/30 03:05:38 by mcouto           ###   ########.fr       */
+/*   Updated: 2019/05/30 21:52:05 by mcouto           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,53 +17,55 @@
 #include <fcntl.h>
 #include <string.h>
 
-static int ft_lastlines(char **remain, char **lift, char **line, int ret)
+static int ft_lastlines(char **remain, char **line, int ret)
 {
 	int size;
 
-	size = ft_strlen(*lift);
 	//check if theres smthng else in the string, if it has only "\0", then the read is over.
 	//define last line:
 	if (ret == -1)
 		return (-1);
-	if (**lift != '\0')
+	if (**remain != '\0')
 	{
+		size = ft_strlen(*remain);
 		*line = ft_strnew(size);
-		*line = ft_strncpy(*line, *lift, (size));
-		*remain = NULL;
+		*line = ft_strncpy(*line, *remain, (size));
+		ft_strdel(remain);
 		return (1);
 	}
-	ft_strdel(lift);
-	ft_strdel(remain);
 	*line = NULL;
+	ft_strdel(remain);
 	return (0);
 }
 
-static void	ft_organize(char **remain, char **lift, char **line, int i)
+static void	ft_organize(char **remain, char **line, int i)
 {
+	char *tmp;
 	//this func was mostly to 25l rule of the norm, as a closure of the get_next_line, it
 	//put all the stuff inside of the funcs
+	tmp = *remain;
 	*line = ft_strnew(i);
-	*line = ft_strncpy(*line, *lift, (i));
-	*remain = ft_strdup(&(*lift)[i + 1]);
-	ft_strdel(lift);
+	*line = ft_strncpy(*line, *remain, (i));
+	*remain = ft_strdup(&(*remain)[i + 1]);
+	ft_strdel(&tmp);
 }
 
-static char	*ft_nonl(int *ret, char *lift, const int fd)
+static char	*ft_nonl(int *ret, char **remain, const int fd)
 {
 	//this func adds more volume to the "buff" when it reachs the end. It also
 	//takes de position of "ret" so it changes in the original gnl if is -1 or 0;
 	char *new;
 	char *tmp;
 
-	tmp = lift; //////THIS IS CREATING THE LEAK, HOW TO SOLVE////
+	tmp = *remain;
 	if(!(new = ft_strnew(BUFF_SIZE)))
 		return (NULL);
 	*ret = read(fd, new, BUFF_SIZE);
-	if (!(lift = ft_strjoin(lift, new)))
+	if (!(*remain = ft_strjoin(*remain, new)))
 		return (NULL);
 	ft_strdel(&new);
-	return (lift);
+	ft_strdel(&tmp);
+	return (*remain);
 }
 
 int	get_next_line(const int fd, char **line)
@@ -71,7 +73,6 @@ int	get_next_line(const int fd, char **line)
 	static char *remain;
 	int i;
 	int ret;
-	char *lift;
 
 	ret = 0; //return from the read
 	i = 0; //index to check '\n' char
@@ -79,21 +80,20 @@ int	get_next_line(const int fd, char **line)
 		return (-1);
 	if (remain == NULL) //first line mark, creates the remain string
 		remain = ft_strnew(BUFF_SIZE);
-	lift = remain;//put it in tmp so we can avoid memory
 				//leaking and can clean the remain used stuff already
-	while (lift[i] != '\n')
+	while (remain[i] != '\n')
 	{
-		if (lift[i] == '\0')
+		if (remain[i] == '\0')
 		{
-			lift = ft_nonl(&ret, lift, fd);
+			remain = ft_nonl(&ret, &remain, fd);
 			if (ret < 1)
-				return(ft_lastlines(&remain, &lift, line, ret));
+				return(ft_lastlines(&remain, line, ret));
 	//to deal with the '\n' being in the place of the old '\0':
 			i = i - 1;
 		}
 	   i++;
 	}
-	ft_organize(&remain, &lift, line, i);
+	ft_organize(&remain, line, i);
 	return (1);
 }
 
