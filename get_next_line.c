@@ -6,7 +6,7 @@
 /*   By: mcouto <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/18 19:00:24 by mcouto            #+#    #+#             */
-/*   Updated: 2019/05/30 22:26:01 by mcouto           ###   ########.fr       */
+/*   Updated: 2019/05/30 22:36:44 by mcouto           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,12 +17,10 @@
 #include <fcntl.h>
 #include <string.h>
 
-static int ft_lastlines(char **remain, char **line, int ret)
+static int	ft_lastlines(char **remain, char **line, int ret)
 {
-	int size;
+	int		size;
 
-	//check if theres smthng else in the string, if it has only "\0", then the read is over.
-	//define last line:
 	if (ret == -1)
 		return (-1);
 	if (**remain != '\0')
@@ -40,9 +38,8 @@ static int ft_lastlines(char **remain, char **line, int ret)
 
 static void	ft_organize(char **remain, char **line, int i)
 {
-	char *tmp;
-	//this func was mostly to 25l rule of the norm, as a closure of the get_next_line, it
-	//put all the stuff inside of the funcs
+	char		*tmp;
+
 	tmp = *remain;
 	*line = ft_strnew(i);
 	*line = ft_strncpy(*line, *remain, (i));
@@ -52,13 +49,11 @@ static void	ft_organize(char **remain, char **line, int i)
 
 static char	*ft_nonl(int *ret, char **remain, const int fd)
 {
-	//this func adds more volume to the "buff" when it reachs the end. It also
-	//takes de position of "ret" so it changes in the original gnl if is -1 or 0;
-	char *new;
-	char *tmp;
+	char		*new;
+	char		*tmp;
 
 	tmp = *remain;
-	if(!(new = ft_strnew(BUFF_SIZE)))
+	if (!(new = ft_strnew(BUFF_SIZE)))
 		return (NULL);
 	*ret = read(fd, new, BUFF_SIZE);
 	if (!(*remain = ft_strjoin(*remain, new)))
@@ -68,55 +63,30 @@ static char	*ft_nonl(int *ret, char **remain, const int fd)
 	return (*remain);
 }
 
-int	get_next_line(const int fd, char **line)
+int			get_next_line(const int fd, char **line)
 {
-	static char *remain[MAX_FD];
-	int i;
-	int ret;
+	static char	*remain[MAX_FD];
+	int			i;
+	int			ret;
 
-	ret = 0; //return from the read
-	i = 0; //index to check '\n' char
+	ret = 0;
+	i = 0;
 	if ((fd < 0 || fd >= MAX_FD) || !line)
 		return (-1);
-	if (remain[fd] == NULL) //first line mark, creates the remain string
+	if (remain[fd] == NULL)
 		if (!(remain[fd] = ft_strnew(BUFF_SIZE)))
-				return (-1);
-				//leaking and can clean the remain used stuff already
+			return (-1);
 	while (remain[fd][i] != '\n')
 	{
 		if (remain[fd][i] == '\0')
 		{
 			remain[fd] = ft_nonl(&ret, &remain[fd], fd);
 			if (ret < 1)
-				return(ft_lastlines(&remain[fd], line, ret));
-	//to deal with the '\n' being in the place of the old '\0':
+				return (ft_lastlines(&remain[fd], line, ret));
 			i = i - 1;
 		}
-	   i++;
+		i++;
 	}
 	ft_organize(&remain[fd], line, i);
 	return (1);
 }
-
-/*int main(int ac, char **av)
-{
-	ac = 0;
-	char *hi;
-	int fd;
-	int a;
-	int ret;
-	a = 0;
-	ret = 0;
-	fd = open(av[1], O_RDONLY);
-	if (fd < 0)
-	{
-	 //error
-	}
-	while (a != 10)
-	{
-		ret = get_next_line(fd,&hi);
-		printf("\n[%d]\n", ret);
-		printf("%s", hi);
-		a++;
-	}
-}*/
