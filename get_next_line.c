@@ -6,7 +6,7 @@
 /*   By: mcouto <marvin@42.fr>                      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/18 19:00:24 by mcouto            #+#    #+#             */
-/*   Updated: 2019/05/30 21:52:05 by mcouto           ###   ########.fr       */
+/*   Updated: 2019/05/30 22:26:01 by mcouto           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,30 +70,31 @@ static char	*ft_nonl(int *ret, char **remain, const int fd)
 
 int	get_next_line(const int fd, char **line)
 {
-	static char *remain;
+	static char *remain[MAX_FD];
 	int i;
 	int ret;
 
 	ret = 0; //return from the read
 	i = 0; //index to check '\n' char
-	if (fd < 0 || !line)
+	if ((fd < 0 || fd >= MAX_FD) || !line)
 		return (-1);
-	if (remain == NULL) //first line mark, creates the remain string
-		remain = ft_strnew(BUFF_SIZE);
+	if (remain[fd] == NULL) //first line mark, creates the remain string
+		if (!(remain[fd] = ft_strnew(BUFF_SIZE)))
+				return (-1);
 				//leaking and can clean the remain used stuff already
-	while (remain[i] != '\n')
+	while (remain[fd][i] != '\n')
 	{
-		if (remain[i] == '\0')
+		if (remain[fd][i] == '\0')
 		{
-			remain = ft_nonl(&ret, &remain, fd);
+			remain[fd] = ft_nonl(&ret, &remain[fd], fd);
 			if (ret < 1)
-				return(ft_lastlines(&remain, line, ret));
+				return(ft_lastlines(&remain[fd], line, ret));
 	//to deal with the '\n' being in the place of the old '\0':
 			i = i - 1;
 		}
 	   i++;
 	}
-	ft_organize(&remain, line, i);
+	ft_organize(&remain[fd], line, i);
 	return (1);
 }
 
